@@ -1,7 +1,10 @@
 i guess this is the start of my cpu risc-v implementation.
 
 # RISC-V 32I
-
+  QUick Start : mkdir build && cd build 
+                iverilog -o test ../tb/Top_cpu_tb.v ../src/*
+                vvp test
+                gtkwave top_test
 ## CORE Component :
 
 ### ALU : 
