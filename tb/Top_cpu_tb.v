@@ -17,7 +17,6 @@ module Top_cpu_tb();
         #10 reset = 1;
         
         $display("\n========================================");
-        $display("   RISC-V CPU TEST BENCH");
         $display("   (I-type, S-type, LW, B-type, R-type)");
         $display("========================================\n");
         
@@ -41,7 +40,7 @@ module Top_cpu_tb();
                  cpu_inst.reg_file.registers[8], cpu_inst.reg_file.registers[10]);
         
         #10;
-        $display("[2]  | %h | %h | ADDI x7, x0, 99          | %3d | %3d | %3d | %3d | %3d | %4d | %3d | %3d", 
+        $display("[2]  | %h | %h | SLT x7, x2, x1 [R-type]  | %3d | %3d | %3d | %3d | %3d | %4d | %3d | %3d", 
                  cpu_inst.PC, cpu_inst.Instruction,
                  cpu_inst.reg_file.registers[1], cpu_inst.reg_file.registers[2],
                  cpu_inst.reg_file.registers[3], cpu_inst.reg_file.registers[4],
@@ -129,45 +128,51 @@ module Top_cpu_tb();
         $display("x3  = %3d  (expected: 10 - loaded from mem)", cpu_inst.reg_file.registers[3]);
         $display("x4  = %3d  (expected: 22 - ADD 12+10)", cpu_inst.reg_file.registers[4]);
         $display("x6  = %3d  (expected: 2 - SUB 12-10)", cpu_inst.reg_file.registers[6]);
-        $display("x7  = %3d  (expected: 99 - loaded from imm)", cpu_inst.reg_file.registers[7]);
-        $display("x8  = %3d  (expected: 2 - AND 22&99)", cpu_inst.reg_file.registers[8]);
-        $display("x10 = %3d  (expected: 119 - OR 22|99)", cpu_inst.reg_file.registers[10]);
+        $display("x7  = %3d  (expected: 1 - SLT result)", cpu_inst.reg_file.registers[7]);
+        $display("x8  = %3d  (expected: 0 - AND 22&1)", cpu_inst.reg_file.registers[8]);
+        $display("x10 = %3d  (expected: 23 - OR 22|1)", cpu_inst.reg_file.registers[10]);
 
 
         $display("\n========================================");
         $display("   TEST RESULTS");
         $display("========================================");
         if (cpu_inst.reg_file.registers[3] == 10) begin
-            $display("✓ LW (I-type) works: x3=10 (loaded from memory)");
+            $display("LW (I-type) works: x3=10 (loaded from memory)");
         end else begin
-            $display("✗ LW (I-type) failed: x3=%d", cpu_inst.reg_file.registers[3]);
+            $display("LW (I-type) failed: x3=%d", cpu_inst.reg_file.registers[3]);
         end
         
         if (cpu_inst.reg_file.registers[4] == 22) begin
-            $display("✓ ADD (R-type) works: x4=22");
+            $display("ADD (R-type) works: x4=22");
         end else begin
-            $display("✗ ADD (R-type) failed: x4=%d", cpu_inst.reg_file.registers[4]);
+            $display("ADD (R-type) failed: x4=%d", cpu_inst.reg_file.registers[4]);
         end
         
         if (cpu_inst.reg_file.registers[6] == 2) begin
-            $display("✓ SUB (R-type) works: x6=2");
+            $display("SUB (R-type) works: x6=2");
         end else begin
-            $display("✗ SUB (R-type) failed: x6=%d", cpu_inst.reg_file.registers[6]);
+            $display("SUB (R-type) failed: x6=%d", cpu_inst.reg_file.registers[6]);
         end
         
-        if (cpu_inst.reg_file.registers[8] == 2) begin
-            $display("✓ AND (R-type) works: x8=2");
+        if (cpu_inst.reg_file.registers[8] == 0) begin
+            $display("AND (R-type) works: x8=0");
         end else begin
-            $display("✗ AND (R-type) failed: x8=%d", cpu_inst.reg_file.registers[8]);
+            $display("AND (R-type) failed: x8=%d", cpu_inst.reg_file.registers[8]);
         end
         
-        if (cpu_inst.reg_file.registers[10] == 119) begin
-            $display("✓ OR (R-type) works: x10=119");
+        if (cpu_inst.reg_file.registers[10] == 23) begin
+            $display("OR (R-type) works: x10=23");
         end else begin
-            $display("✗ OR (R-type) failed: x10=%d", cpu_inst.reg_file.registers[10]);
+            $display("OR (R-type) failed: x10=%d", cpu_inst.reg_file.registers[10]);
         end
         
-        $display("✓ SW (S-type) stored x2=10 at memory[12]");
+        if (cpu_inst.reg_file.registers[7] == 1) begin
+            $display("SLT (R-type) works: x7=1");
+        end else begin
+            $display("SLT (R-type) failed: x7=%d", cpu_inst.reg_file.registers[7]);
+        end
+        
+        $display("SW (S-type) stored x2=10 at memory[12]");
         $display("========================================\n");
 
         $finish;

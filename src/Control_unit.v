@@ -76,6 +76,7 @@ module alu_decoder(ALUOp,Funct3,Funct7,ALUControl);
             2'b10: begin //R-type arithmetic instructions (check Funct7 and Funct3)
                 case (Funct3)
                     3'b000: ALUControl = (Funct7 == 7'b0000000) ? 3'b000 : 3'b001; // ADD (Funct7=0) or SUB (Funct7=32)
+                    3'b010: ALUControl = 3'b101; //SLT (Set Less Than)
                     3'b111: ALUControl = 3'b010; //AND
                     3'b110: ALUControl = 3'b011; //OR
                     default: ALUControl = 3'b000; //default to add
