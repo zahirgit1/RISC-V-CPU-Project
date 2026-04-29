@@ -12,9 +12,9 @@ module Instruction_memory(Address,reset, ReadData);
         memory[1] = 32'h00A00113;   // ADDI x2, x0, 10: x2 = 10 (data to store)
         memory[2] = 32'h001123B3;   // SLT x7, x2, x1: x7 = (x2<x1) = (10<12) = 1 (R-type)
         memory[3] = 32'h00500213;   // ADDI x4, x0, 5: x4 = 5 (for logic operations)
-        memory[4] = 32'h01008263;   // BEQ x1, x2, +16: if x1==x2 branch (NOT taken, 12≠10)
-        memory[5] = 32'h00212023;   // SW x2, 0(x1): Store x2 at memory[x1]=12
-        memory[6] = 32'h00012183;   // LW x3, 0(x1): Load from memory[x1] into x3
+        memory[4] = 32'h00208863;   // BEQ x1, x2, +16: if x1==x2 branch (NOT taken, 12≠10)
+        memory[5] = 32'h0020a023;   // SW x2, 0(x1): Store x2 at memory[x1]=12
+        memory[6] = 32'h0000a183;   // LW x3, 0(x1): Load from memory[x1] into x3
         memory[7] = 32'h00208233;   // ADD x4, x1, x2: x4 = 22 (R-type, 12+10)
         memory[8] = 32'h40208333;   // SUB x6, x1, x2: x6 = 2 (R-type, 12-10)
         memory[9] = 32'h00727433;   // AND x8, x4, x7: x8 = 22 & 1 = 0 (R-type)
