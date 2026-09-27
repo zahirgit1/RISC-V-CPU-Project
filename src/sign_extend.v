@@ -1,12 +1,14 @@
 module Sign_Extend (In,Imm_Ext,ImmSrc);
 
     input [31:0]In;
-    input  [1:0] ImmSrc;
+    input  [2:0] ImmSrc;
     output [31:0]Imm_Ext;
 
-    assign Imm_Ext = (ImmSrc == 2'b01) ? ({{20{In[31]}},In[31:25],In[11:7]}):
-                     ImmSrc == 2'b00 ? ( {{20{In[31]}},In[31:20]}): 
-                     ImmSrc == 2'b10 ? ( {{19{In[31]}},In[7],In[30:25],In[11:8],1'b0}): 32'b0; 
-                                                                 // 00 for I-Type , 01 for S-Type, 10 for B-Type
+    assign Imm_Ext = (ImmSrc == 3'b001) ? ({{20{In[31]}},In[31:25],In[11:7]}):
+                     ImmSrc == 3'b000 ? ( {{20{In[31]}},In[31:20]}): 
+                     ImmSrc == 3'b010 ? ( {{20{In[31]}},In[7],In[30:25],In[11:8],1'b0} ):
+                     ImmSrc == 3'b011 ? ( {{12{In[31]}},In[19:12],In[20],In[30:21],1'b0}):
+                      32'b0; // default case, if ImmSrc is not recognized, output 0
+                                                                 // 00 for I-Type , 01 for S-Type, 10 for B-Type, 11 for J-Type
                                 
 endmodule

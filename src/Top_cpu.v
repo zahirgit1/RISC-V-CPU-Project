@@ -19,14 +19,15 @@ module Top_cpu (clk, reset);
     wire [31:0] Imm;//immediate value extended from instruction
     
     wire Branch; // Branch control signal
-    wire ResultSrc; // Control signal to select between ALU result and memory data for writing back to register
+
+    wire [1:0] ResultSrc; // Control signal to select between ALU result and memory data for writing back to register
     wire MemWrite; // Memory write enable signal
     wire ALUSrc; // Control signal to select between register data and immediate for ALU operand B
     wire RegWrite; // Register write enable signal
     wire [2:0] ALUOp; 
     wire [2:0] ALUControl;
     wire PcSrc; // Control signal to select between PC+4 and branch target for next PC
-    wire [1:0] ImmSrc; // Control signal to select the type of immediate
+    wire [2:0] ImmSrc; // Control signal to select the type of immediate
 
     // Alu Flags
     wire Zero; 
@@ -135,6 +136,7 @@ module Top_cpu (clk, reset);
     
     demux_result result_mux (
         .ReadData(Read_Data_Mem),
+        .PCplus4(PC_Inc),
         .ALUResult(ALU_Result),
         .ResultSrc(ResultSrc),
         .Result(Write_Data_Reg)

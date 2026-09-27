@@ -1,61 +1,78 @@
-module main_decoder(op,Branch,ResultSrc,MemWrite,ALUSrc,ImmSrc,RegWrite,ALUOp);
+module main_decoder(op,Jump,Branch,ResultSrc,MemWrite,ALUSrc,ImmSrc,RegWrite,ALUOp);
     input [6:0] op;
-    output reg Branch,ResultSrc,MemWrite,ALUSrc,RegWrite;
-    output reg [1:0] ImmSrc,ALUOp;
+    output reg Jump,Branch,MemWrite,ALUSrc,RegWrite;
+    output reg [2:0] ImmSrc;
+    output reg [1:0] ALUOp,ResultSrc;
     
     always @(*) begin
         case(op)
             7'b0000011: begin //lw
                 Branch = 0;
+                Jump = 0;
                 ResultSrc = 1;
                 MemWrite = 0;
                 ALUSrc = 1;
-                ImmSrc = 2'b00; //I-type
+                ImmSrc = 3'b000; //I-type
                 RegWrite = 1;
                 ALUOp = 2'b00; //add
             end
             7'b0100011: begin //sw
                 Branch = 0;
+                Jump = 0;
                 ResultSrc = 0; //don't care about this signal for sw
                 MemWrite = 1;
                 ALUSrc = 1;
-                ImmSrc = 2'b01; //S-type
+                ImmSrc = 3'b001; //S-type
                 RegWrite = 0;
                 ALUOp = 2'b00; //add
             end
             7'b1100011: begin //beq
                 Branch = 1;
+                Jump = 0;
                 ResultSrc = 0; //don't care about this signal for beq
                 MemWrite = 0;
                 ALUSrc = 0;
-                ImmSrc = 2'b10; //B-type
+                ImmSrc = 3'b010; //B-type
                 RegWrite = 0;
                 ALUOp = 2'b01; //subtract
             end
             7'b0110011: begin //R-type
                 Branch = 0;     
+                Jump = 0;
                 ResultSrc = 0; 
                 MemWrite = 0;
                 ALUSrc = 0;
-                ImmSrc = 2'b00; //don't care for R-type
+                ImmSrc = 3'b000; //don't care for R-type
                 RegWrite = 1;
                 ALUOp = 2'b10; //R-type
             end
             7'b0010011: begin //I-type arithmetic instructions
-                Branch = 0;     
+                Branch = 0; 
+                Jump = 0;     
                 ResultSrc = 0; 
                 MemWrite = 0;
                 ALUSrc = 1;
-                ImmSrc = 2'b00; //I-type
+                ImmSrc = 3'b000; //I-type
                 RegWrite = 1;
                 ALUOp = 2'b11; //I-type arithmetic (distinguish from R-type)
             end
+            7'b1101111: begin //JAL
+                Branch = 0; 
+                Jump = 1;    
+                ResultSrc = 2'b10; //PC+4
+                MemWrite = 0;
+                ALUSrc = 0; //don't care for JAL
+                ImmSrc = 3'b011; //J-type
+                RegWrite = 1;
+                ALUOp = 2'b00; //don't care for JAL
+            end
             default: begin //default case for unsupported instructions
                 Branch = 0;
+                Jump = 0;
                 ResultSrc = 0;
                 MemWrite = 0;
                 ALUSrc = 0;
-                ImmSrc = 2'b00;
+                ImmSrc = 3'b000;
                 RegWrite = 0;
                 ALUOp = 2'b00;
             end
@@ -101,15 +118,18 @@ module Control_unit (Op, Funct3, Funct7,Zero,PcSrc,ResultSrc,MemWrite,ALUControl
     input [2:0] Funct3;
     input [6:0] Funct7;
     input Zero;
-    output  PcSrc,ResultSrc,MemWrite,ALUSrc,RegWrite;
-    output  [1:0] ImmSrc;
+    output  PcSrc,MemWrite,ALUSrc,RegWrite;
+    output  [1:0] ResultSrc;
+    output  [2:0] ImmSrc;
     output  [2:0] ALUControl;
     //wires to connect the main decoder and alu decoder
     wire [1:0] ALUOp;
     wire branch;
+    wire jump;
     main_decoder main_dec (
         .op(Op),
         .Branch(branch),
+        .Jump(jump),
         .ResultSrc(ResultSrc),
         .MemWrite(MemWrite),
         .ALUSrc(ALUSrc),
@@ -124,7 +144,7 @@ module Control_unit (Op, Funct3, Funct7,Zero,PcSrc,ResultSrc,MemWrite,ALUControl
         .ALUControl(ALUControl)
     );
     //PcSrc is the branch signal ANDed with the zero flag
-    assign PcSrc = branch & Zero;
+    assign PcSrc = (branch & Zero) | jump; 
 
 endmodule
 
