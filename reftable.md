@@ -47,10 +47,11 @@ This file tracks what is already implemented in the current CPU and what still n
 | addi | I-type arithmetic | ✅ | Implemented |
 | andi | I-type arithmetic | ✅ | Implemented |
 | ori | I-type arithmetic | ✅ | Implemented |
+| jal | J-Type |✅ | Implemented |
 
 ## 3) Missing features / next to implement
 
-| Missing item | Priority | Why it is missing | Suggested next step |
+| Missing item | Priority | Why it is missing |
 |---|---|---|---|
 | JAL | High | No jump decoder logic and no J-type immediate support | Add J-type decoding + new PC source logic |
 | JALR | High | No instruction support in decoder or control flow | Add JALR decode and PC update path |
@@ -110,7 +111,7 @@ It does not yet support a full RV32I instruction set.
 
 ## 7) checklist for tracking progress
 
-- [ ] JAL : saves PC+4 in Rd then jumps to pc + 21 bits sign extended immediate, connected the PCPlus4 to the writing register multiplexeur, updated the controlu unit to hand J instructions.
+- [Done ] JAL : saves PC+4 in Rd then jumps to pc + 21 bits sign extended immediate, connected the PCPlus4 to the writing register multiplexeur, updated the controlu unit to hand J instructions.
 - [ ] JALR
 - [ ] BNE
 - [ ] BLT
@@ -127,7 +128,7 @@ It does not yet support a full RV32I instruction set.
 - [ ] SRL
 - [ ] SRA
 - [ ] SLTU
-- [ ] LUI
+- [ Done] LUI : loads imediate in uperhalf of the register
 - [ ] AUIPC
 - [ ] Fence / system instructions
 - [ ] Full RV32I validation

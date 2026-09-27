@@ -139,6 +139,7 @@ module Top_cpu (clk, reset);
         .PCplus4(PC_Inc),
         .ALUResult(ALU_Result),
         .ResultSrc(ResultSrc),
+        .Imm_Ext(Imm_Ext),
         .Result(Write_Data_Reg)
     );
     

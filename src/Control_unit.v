@@ -66,6 +66,16 @@ module main_decoder(op,Jump,Branch,ResultSrc,MemWrite,ALUSrc,ImmSrc,RegWrite,ALU
                 RegWrite = 1;
                 ALUOp = 2'b00; //don't care for JAL
             end
+            7'b0110111: begin //LUI
+                Branch = 0; 
+                Jump = 0;    
+                ResultSrc = 2'b11; //Imm_Ext
+                MemWrite = 0;
+                ALUSrc = 1; //don't care for LUI
+                ImmSrc = 3'b100; //U-type
+                RegWrite = 1;
+                ALUOp = 2'b00; //don't care for LUI
+            end
             default: begin //default case for unsupported instructions
                 Branch = 0;
                 Jump = 0;

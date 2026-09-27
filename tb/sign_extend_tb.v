@@ -47,6 +47,12 @@ module sign_extend_tb;
         ImmSrc = 3'b011;
         #10;
         $display("Test 6 - J-type: In=%h, ImmSrc=%b, Imm_Ext=%h", In, ImmSrc, Imm_Ext);
+
+        // Test case 7: U-type instruction (ImmSrc = 4)
+        In = 32'hf0000000; // Example input for U-type
+        ImmSrc = 3'b100;
+        #10;
+        $display("Test 7 - U-type: In=%h, ImmSrc=%b, Imm_Ext=%h", In, ImmSrc, Imm_Ext);
         $finish;
     end
 
