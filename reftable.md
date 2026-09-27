@@ -100,7 +100,7 @@ It does not yet support a full RV32I instruction set.
 4. Add remaining load/store variants (LB, LH, LBU, LHU, SB, SH)
 5. Add U-type instructions (LUI, AUIPC)
 6. Add full RV32I compliance pass
-7. Add pipeline hazard handling if moving toward pipelined design
+7. Add pipeline hazard handling 
 
 ## 6) Notes for future work
 
@@ -143,3 +143,8 @@ It does not yet support a full RV32I instruction set.
 - src/Pc.v
 - src/data_memory.v
 - src/instruction_memory.v
+
+
+## 9) pipeline design :
+- Added the necessary register
+- test out without the hazard unit

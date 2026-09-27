@@ -123,23 +123,21 @@ module alu_decoder(ALUOp,Funct3,Funct7,ALUControl);
 endmodule
 
 
-module Control_unit (Op, Funct3, Funct7,Zero,PcSrc,ResultSrc,MemWrite,ALUControl,ALUSrc,ImmSrc,RegWrite);
+module Control_unit (Op, Funct3, Funct7,Jump,Branch,ResultSrc,MemWrite,ALUControl,ALUSrc,ImmSrc,RegWrite);
     input [6:0] Op;
     input [2:0] Funct3;
     input [6:0] Funct7;
-    input Zero;
-    output  PcSrc,MemWrite,ALUSrc,RegWrite;
+    output  Jump,Branch,MemWrite,ALUSrc,RegWrite;
     output  [1:0] ResultSrc;
     output  [2:0] ImmSrc;
     output  [2:0] ALUControl;
     //wires to connect the main decoder and alu decoder
     wire [1:0] ALUOp;
-    wire branch;
-    wire jump;
+
     main_decoder main_dec (
         .op(Op),
-        .Branch(branch),
-        .Jump(jump),
+        .Branch(Branch),
+        .Jump(Jump),
         .ResultSrc(ResultSrc),
         .MemWrite(MemWrite),
         .ALUSrc(ALUSrc),
@@ -154,7 +152,7 @@ module Control_unit (Op, Funct3, Funct7,Zero,PcSrc,ResultSrc,MemWrite,ALUControl
         .ALUControl(ALUControl)
     );
     //PcSrc is the branch signal ANDed with the zero flag
-    assign PcSrc = (branch & Zero) | jump; 
+    //assign PcSrc = (branch & Zero) | jump; 
 
 endmodule
 
