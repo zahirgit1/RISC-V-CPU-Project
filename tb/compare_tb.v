@@ -52,6 +52,40 @@ module compare_tb();
                  cpu_inst.reg_file.registers[11],
                  cpu_inst.reg_file.registers[12],
                  cpu_inst.reg_file.registers[13]);
+        $display("x14=%08h x15=%08h x16=%08h x17=%08h x18=%08h x19=%08h x20=%08h",
+                 cpu_inst.reg_file.registers[14],
+                 cpu_inst.reg_file.registers[15],
+                 cpu_inst.reg_file.registers[16],
+                 cpu_inst.reg_file.registers[17],
+                 cpu_inst.reg_file.registers[18],
+                 cpu_inst.reg_file.registers[19],
+                 cpu_inst.reg_file.registers[20]);
+        if (cpu_inst.reg_file.registers[0]  === 0  &&
+            cpu_inst.reg_file.registers[1]  === 64 &&
+            cpu_inst.reg_file.registers[2]  === 7  &&
+            cpu_inst.reg_file.registers[3]  === 5  &&
+            cpu_inst.reg_file.registers[4]  === 12 &&
+            cpu_inst.reg_file.registers[5]  === 17 &&
+            cpu_inst.reg_file.registers[6]  === 10 &&
+            cpu_inst.reg_file.registers[7]  === 0  &&
+            cpu_inst.reg_file.registers[8]  === 29 &&
+            cpu_inst.reg_file.registers[9]  === 1  &&
+            cpu_inst.reg_file.registers[10] === 42 &&
+            cpu_inst.reg_file.registers[11] === 42 &&
+            cpu_inst.reg_file.registers[12] === 49 &&
+            cpu_inst.reg_file.registers[13] === 49 &&
+            cpu_inst.reg_file.registers[14] === 14 &&
+            cpu_inst.reg_file.registers[15] === 15 &&
+            cpu_inst.reg_file.registers[16] === 88 &&
+            cpu_inst.reg_file.registers[17] === 0  &&
+            cpu_inst.reg_file.registers[18] === 88 &&
+            cpu_inst.reg_file.registers[19] === 1  &&
+            cpu_inst.reg_file.registers[20] === 0  &&
+            cpu_inst.data_mem.memory[16] === 42) begin
+            $display("PIPELINE TEST: PASS");
+        end else begin
+            $display("PIPELINE TEST: FAIL");
+        end
         $display("============================================================");
         $finish;
     end

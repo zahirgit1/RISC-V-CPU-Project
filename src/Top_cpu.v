@@ -42,6 +42,7 @@ module Top_cpu (clk, reset);
     wire [31:0] PCE; // Program counter in execute stage
     wire [31:0] PCPlus4E; // PC + 4 in execute stage
     wire [31:0] RD1E, RD2E; // Register data in execute stage
+    wire [4:0] Rs1E, Rs2E; // Source register addresses in execute stage
     wire [4:0] RdE; // Destination register in execute stage
     wire [31:0] ImmExtE; // Immediate value in execute stage
     wire [2:0] ALUControlE; // ALU control signal in execute stage
@@ -49,8 +50,9 @@ module Top_cpu (clk, reset);
     wire RegWriteE, MemWriteE, BranchE, JumpE; // Control signals
     wire [31:0] ALUResultE; // ALU result in execute stage
     wire [31:0] WriteDataE; // Data to be written to memory in execute stage
+    wire [31:0] ForwardedRD1E, ForwardedRD2E;
+    wire [1:0] ForwardAE, ForwardBE;
     wire [1:0] ResultSrcE; // Control signal to select between ALU result and memory data for writing back to register in execute stage
-    assign WriteDataE = RD2E; // Data to be written to memory is the second register data in execute stage
     // Alu Flags
 
     wire ZeroE; 
@@ -86,6 +88,8 @@ module Top_cpu (clk, reset);
     wire RegWriteW; // Register write enable signal in write back stage
 
     wire [31:0] Write_Data_Reg;
+    wire [31:0] ForwardResultM;
+    wire StallF, StallD, FlushD, FlushE;
     // Control unit assigns control signals based on opcode and function fields
     assign Op = InstrD[6:0];
     assign Funct3 = InstrD[14:12];
@@ -94,6 +98,7 @@ module Top_cpu (clk, reset);
     assign RS2 = InstrD[24:20];
     assign RdD = InstrD[11:7];
     assign Imm = InstrD[31:0];// immediate value taken (takes all the cases in considiration)
+    assign WriteDataE = ForwardedRD2E;
 
     
     // Fetch stage: PC, instruction memory, and PC incrementer
@@ -101,7 +106,8 @@ module Top_cpu (clk, reset);
         .PC(PCF),
         .PC_Next(PC),
         .clk(clk),
-        .reset(reset)
+        .reset(reset),
+        .EN(~StallF)
     );
     
     Pc_incrementer pc_add (
@@ -125,7 +131,9 @@ module Top_cpu (clk, reset);
         .PCPlus4D(PCPlus4D),
         .Instruction_D(InstrD),
         .clk(clk),
-        .reset(reset)
+        .reset(reset),
+        .EN(~StallD),
+        .clr(FlushD)
     );
 
     //Decode stage: Control unit, register file, sign extend, and demux for ALU source
@@ -148,7 +156,7 @@ module Top_cpu (clk, reset);
         .A2(RS2),
         .A3(RdW),
         .Write_Data3(Write_Data_Reg),// modify when i get to WB stage
-        .Write_Enable3(RegWriteW),
+        .Write_Enable3(RegWriteW && (RdW != 5'd0)),
         .clk(clk),
         .reset(reset),
         .Read_Data1(RD1D),
@@ -173,6 +181,8 @@ module Top_cpu (clk, reset);
         .RD1D(RD1D),
         .RD2D(RD2D),
         .PCD(PCD),
+        .Rs1D(RS1),
+        .Rs2D(RS2),
         .RdD(RdD),
         .ImmExtD(ImmExtD),
         .PCPlus4D(PCPlus4D),
@@ -186,23 +196,42 @@ module Top_cpu (clk, reset);
         .RD1E(RD1E),
         .RD2E(RD2E),
         .PCE(PCE),
+        .Rs1E(Rs1E),
+        .Rs2E(Rs2E),
         .RdE(RdE),
         .ImmExtE(ImmExtE),
         .PCPlus4E(PCPlus4E),
         .clk(clk),
-        .reset(reset)
+        .reset(reset),
+        .clr(FlushE)
     );
 
     // Execute stage: ALU, data memory, and demux for result source
+    forwarding_mux forward_a_mux (
+        .ALUResultM(ForwardResultM),
+        .Write_Data_Reg(Write_Data_Reg),
+        .ReadDataE(RD1E),
+        .ForwardE(ForwardAE),
+        .SrcA(ForwardedRD1E)
+    );
+
+    forwarding_mux forward_b_mux (
+        .ALUResultM(ForwardResultM),
+        .Write_Data_Reg(Write_Data_Reg),
+        .ReadDataE(RD2E),
+        .ForwardE(ForwardBE),
+        .SrcA(ForwardedRD2E)
+    );
+
     demux_Src alu_src_mux (
-        .RD(RD2E),
+        .RD(ForwardedRD2E),
         .imm(ImmExtE),
         .ALUSRC(ALUSrcE),
         .Src(ALU_B)
     );
     
     alu alu_unit (
-        .A(RD1E),
+        .A(ForwardedRD1E),
         .B(ALU_B),
         .ALUControl({1'b0, ALUControlE}),
         .Result(ALU_Result),
@@ -218,6 +247,35 @@ module Top_cpu (clk, reset);
         .PC_Inc(PC_Next_Branch)
     );
     
+    hazard_unit hazards (
+        .Rs1E(Rs1E),
+        .Rs2E(Rs2E),
+        .Rs1D(RS1),
+        .Rs2D(RS2),
+        .RdE(RdE),
+        .RdM(RdM),
+        .RdW(RdW),
+        .PCSrcE(PcSrcE),
+        .ResultSrcE0(ResultSrcE == 2'b01),
+        .RegWriteM(RegWriteM),
+        .RegWriteW(RegWriteW),
+        .StallF(StallF),
+        .StallD(StallD),
+        .FlushD(FlushD),
+        .FlushE(FlushE),
+        .ForwardAE(ForwardAE),
+        .ForwardBE(ForwardBE)
+    );
+
+    demux_result forward_result_mux (
+        .ReadData(Read_Data_Mem),
+        .PCplus4(PCPlus4M),
+        .ALUResult(ALUResultM),
+        .Imm_Ext(ImmExtM),
+        .ResultSrc(ResultSrcM),
+        .Result(ForwardResultM)
+    );
+
     // Execute Pipeline Register
     execute_instruction execute_pip_reg (
         .RegWriteE(RegWriteE),

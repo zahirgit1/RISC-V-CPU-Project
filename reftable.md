@@ -148,3 +148,7 @@ It does not yet support a full RV32I instruction set.
 ## 9) pipeline design :
 - Added the necessary register
 - test out without the hazard unit
+- add the hazard unit logic
+- added the forwarding units
+- tested the cpu with a complete assembly program expected result calculated by hand to determine if it passes the pipeline test or not
+- TEST succeded

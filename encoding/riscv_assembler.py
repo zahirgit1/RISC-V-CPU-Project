@@ -249,8 +249,8 @@ def assemble_file(input_file, output_file=None):
         addr = 0
         
         for raw_line in lines:
-            line = raw_line.strip()
-            if not line or line.startswith('#'):
+            line = raw_line.split('#', 1)[0].strip()
+            if not line:
                 continue
             if ':' in line:
                 before, after = line.split(':', 1)

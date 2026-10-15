@@ -1,42 +1,43 @@
-module fetch_instruction(PCF,PCPlus4F,Instruction_F,
-                        PCD,PCPlus4D,Instruction_D,
-                        clk,reset);
-    input clk,reset;
-    input [31:0] PCF,PCPlus4F,Instruction_F;
-    output reg [31:0] PCD,PCPlus4D,Instruction_D;   
+module fetch_instruction(PCF, PCPlus4F, Instruction_F,
+                         PCD, PCPlus4D, Instruction_D,
+                         clk, reset, EN, clr);
+    input clk, reset, EN, clr;
+    input [31:0] PCF, PCPlus4F, Instruction_F;
+    output reg [31:0] PCD, PCPlus4D, Instruction_D;
 
     always @(posedge clk) begin
-        if (!reset) begin
+        if (!reset || clr) begin
             PCD <= 32'h00000000;
             PCPlus4D <= 32'h00000000;
             Instruction_D <= 32'h00000000;
-        end else begin
+        end else if (EN) begin
             PCD <= PCF;
             PCPlus4D <= PCPlus4F;
             Instruction_D <= Instruction_F;
         end
+        // Otherwise, hold the current values.
     end
 endmodule
 
 module decode_instruction(RegWriteD, MemWriteD, BranchD, JumpD, ALUControlD, AluSrcD, ResultSrcD,
-                          RD1D, RD2D, PCD, RdD, ImmExtD, PCPlus4D,
+                          RD1D, RD2D, PCD, Rs1D, Rs2D, RdD, ImmExtD, PCPlus4D,
                           RegWriteE, MemWriteE, BranchE, JumpE, ALUControlE, AluSrcE, ResultSrcE,
-                          RD1E, RD2E, PCE, RdE, ImmExtE, PCPlus4E,
-                          clk, reset);
-    input clk, reset;
+                          RD1E, RD2E, PCE, Rs1E, Rs2E, RdE, ImmExtE, PCPlus4E,
+                          clk, reset, clr);
+    input clk, reset, clr;
     input RegWriteD, MemWriteD, BranchD, JumpD, AluSrcD;
     input [1:0] ResultSrcD;
     input [2:0] ALUControlD;
     input [31:0] RD1D, RD2D, PCD, ImmExtD, PCPlus4D;
-    input [4:0] RdD;
+    input [4:0] Rs1D, Rs2D, RdD;
     output reg RegWriteE, MemWriteE, BranchE, JumpE, AluSrcE;
     output reg [1:0] ResultSrcE;
     output reg [2:0] ALUControlE;
     output reg [31:0] RD1E, RD2E, PCE, ImmExtE, PCPlus4E;
-    output reg [4:0] RdE;
+    output reg [4:0] Rs1E, Rs2E, RdE;
 
     always @(posedge clk) begin
-        if (!reset) begin
+        if (!reset || clr) begin
             RegWriteE <= 0;
             MemWriteE <= 0;
             BranchE <= 0;
@@ -47,6 +48,8 @@ module decode_instruction(RegWriteD, MemWriteD, BranchD, JumpD, ALUControlD, Alu
             RD1E <= 32'h00000000;
             RD2E <= 32'h00000000;
             PCE <= 32'h00000000;
+            Rs1E <= 5'b00000;
+            Rs2E <= 5'b00000;
             RdE <= 5'b00000;
             ImmExtE <= 32'h00000000;
             PCPlus4E <= 32'h00000000;
@@ -61,13 +64,16 @@ module decode_instruction(RegWriteD, MemWriteD, BranchD, JumpD, ALUControlD, Alu
             RD1E <= RD1D;
             RD2E <= RD2D;
             PCE <= PCD;
+            Rs1E <= Rs1D;
+            Rs2E <= Rs2D;
             RdE <= RdD;
             ImmExtE <= ImmExtD;
             PCPlus4E <= PCPlus4D;
         end
     end
-
 endmodule
+
+// ...existing code...
 
 module execute_instruction(RegWriteE, MemWriteE,ResultSrcE
                           ,ALUResultE,WriteDataE,RdE,PCPlus4E,ImmExtE,

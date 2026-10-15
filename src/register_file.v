@@ -7,8 +7,12 @@ module register_files(A1,A2,A3,Write_Data3,Write_Enable3,clk,reset,Read_Data1,Re
       output  [31:0] Read_Data1, Read_Data2; // Data outputs for read addresses
 
         reg [31:0] registers [31:0]; // 32 registers of 32 bits each
-        assign Read_Data1 = (!reset)? 32'h00000000 : registers[A1]; // Read data from register A1
-        assign Read_Data2 = (!reset)? 32'h00000000 : registers[A2]; // Read data from register A2
+        assign Read_Data1 = (!reset) ? 32'h00000000 :
+                    (A1 == 5'd0) ? 32'h00000000 :
+                    (Write_Enable3 && (A3 == A1)) ? Write_Data3 : registers[A1];
+        assign Read_Data2 = (!reset) ? 32'h00000000 :
+                    (A2 == 5'd0) ? 32'h00000000 :
+                    (Write_Enable3 && (A3 == A2)) ? Write_Data3 : registers[A2];
 
         always @(posedge clk) begin
             

@@ -1,17 +1,18 @@
-module PC(PC,PC_Next,clk,reset);
+module PC(PC, PC_Next, clk, reset, EN);
     input [31:0] PC_Next;
-    input clk, reset;
+    input clk, reset, EN;
     output reg [31:0] PC;
 
     always @(posedge clk) begin
         if (!reset) begin
-            PC <= 32'h00000000; // Reset PC to 0
-        end else begin
-            PC <= PC_Next; // Update PC with the next value
+            PC <= 32'h00000000;
+        end else if (EN) begin
+            PC <= PC_Next;
         end
+        // Otherwise, hold the current PC value.
     end
-
 endmodule
+
 module Pc_incrementer(PC,PC_Inc,imm_ext);// used for the +4 too
     input [31:0] PC;
     input [31:0] imm_ext;

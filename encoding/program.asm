@@ -1,88 +1,37 @@
-# RISC-V Program: Basic CPU Test
-# This program tests I-type, S-type, R-type, and B-type instructions
+# Directed pipeline regression: forwarding, load-use stall, branches, and JAL.
+ADDI x1, x0, 64       # data-memory base (word index 16)
+ADDI x2, x0, 7
+ADDI x3, x0, 5
+ADDI x17, x0, 0       # initialize registers used to detect skipped writes
+ADDI x20, x0, 0
 
-ADDI x1, x0, 12      # x1 = 12 (address for store/load)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADDI x2, x0, 10      # x2 = 10 (data to store)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-SLT x7, x2, x1       # x7 = (x2<x1) = (10<12) = 1 (R-type)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADDI x4, x0, 5       # x4 = 5 (for logic operations)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-LUI x5, 0xABCD       # x5 = 0xABCD0000 (U-type immediate test)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-BEQ x1, x2, 16       # if x1==x2 branch (NOT taken, 12≠10)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-SW x2, 48(x1)        # Store x2 at memory[x1]=12
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-LW x3, 0(x1)         # Load from memory[x1] into x3
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x4, x1, x2       # x4 = 22 (R-type, 12+10)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-SUB x6, x1, x2       # x6 = 2 (R-type, 12-10)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-AND x8, x4, x7       # x8 = 22 & 1 = 0 (R-type)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-OR x10, x4, x7       # x10 = 22 | 1 = 23 (R-type)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-OR x11, x4, x7       # x11 = 22 | 1 = 23 (R-type)
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-JAL x9, skip         # jump over the next instruction block
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADDI x12, x0, 99     # should be skipped
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADDI x13, x0, 88     # should be skipped
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-skip:
-ADDI x13, x0, 71       # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
-ADD x0, x0, x0        # NOP
+ADD x4, x2, x3        # forwarding into EX: x4 = 12
+ADD x5, x4, x3        # EX/MEM forwarding: x5 = 17
+SUB x6, x5, x2        # forwarding: x6 = 10
+AND x7, x5, x4        # x7 = 0
+OR x8, x5, x4         # x8 = 29
+SLT x9, x6, x5        # x9 = 1
+
+ADDI x10, x0, 42
+SW x10, 0(x1)         # store-data forwarding; memory[16] = 42
+LW x11, 0(x1)
+ADD x12, x11, x2      # immediate load-use dependency; expected one stall, x12 = 49
+ADDI x13, x0, 49
+
+BEQ x12, x13, taken_branch
+ADDI x14, x0, 111     # skipped by taken branch
+taken_branch:
+ADDI x14, x0, 14
+
+BEQ x2, x3, branch_bad # not taken (7 != 5)
+ADDI x15, x0, 15
+JAL x16, after_jal
+ADDI x17, x0, 117     # skipped by JAL
+branch_bad:
+ADDI x20, x0, 99      # skipped when the not-taken branch behaves correctly
+after_jal:
+ADD x18, x16, x0      # verify JAL link forwarding; x18 = x16
+ADDI x0, x0, 99        # x0 must remain zero
+ADDI x19, x0, 1
+done:
+JAL x0, done          # stop in a stable loop

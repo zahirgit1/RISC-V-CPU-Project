@@ -19,3 +19,14 @@ module demux_Src (RD, imm, ALUSRC, Src);
     output [31:0] Src;
     assign Src = (ALUSRC == 1'b1) ? imm : RD;
 endmodule
+
+module forwarding_mux (input [31:0] ALUResultM, input [31:0] Write_Data_Reg, input [31:0] ReadDataE, input [1:0] ForwardE, output reg [31:0] SrcA);
+    always @(*) begin
+        case (ForwardE)
+            2'b00: SrcA = ReadDataE; // No forwarding
+            2'b01: SrcA = Write_Data_Reg; // Forward from WB stage
+            2'b10: SrcA = ALUResultM; // Forward from MEM stage
+            default: SrcA = ReadDataE; // Default case (no forwarding)
+        endcase
+    end
+endmodule
